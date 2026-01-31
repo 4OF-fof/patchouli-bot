@@ -1,8 +1,8 @@
 import { Collection } from "discord.js";
 import type { Command } from "../types";
-import { ping } from "./ping";
+import { promptMessage } from "./promptMessage";
 
-export const commandList: Command[] = [ping];
+export const commandList: Command[] = [promptMessage];
 
 export const commandOrder = new Map(commandList.map((cmd, i) => [cmd.name, i]));
 

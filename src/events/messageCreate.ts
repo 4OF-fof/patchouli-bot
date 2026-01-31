@@ -12,15 +12,21 @@ export const messageCreate: Event<"messageCreate"> = {
 		if (message.author.bot) return;
 		if (!client.user) return;
 
-		const contentLower = message.content.toLowerCase();
-
 		const reply: CommandContext["reply"] = (opts) =>
 			message.reply(opts as string | MessagePayload | MessageReplyOptions);
 
 		const baseContext = { message, executor: message.author, reply } as const;
 
+		const contentLower = message.content.toLowerCase();
+
 		const messageMatches = Array.from(commands.values()).filter((cmd: Command) =>
-			Boolean(cmd.message?.keywords.some((kw: string) => contentLower.includes(kw.toLowerCase()))),
+			Boolean(
+				cmd.message?.keywords.some((kw) =>
+					kw instanceof RegExp
+						? kw.test(message.content)
+						: contentLower.includes(kw.toLowerCase()),
+				),
+			),
 		);
 
 		if (messageMatches.length > 0) {

@@ -54,7 +54,7 @@ export interface Command {
 	slash?: Handler<SlashContext>;
 	userContext?: Handler<UserContextMenuContext>;
 	messageContext?: Handler<MessageContextMenuContext>;
-	message?: Handler<MessageContext> & { keywords: string[] };
+	message?: Handler<MessageContext> & { keywords: (string | RegExp)[] };
 }
 
 export interface Event<K extends keyof ClientEvents = keyof ClientEvents> {
