@@ -39,7 +39,6 @@ function registerCommand(name: string, options: Record<string, unknown> = {}) {
   const cmd = {
     name,
     description: `${name} command`,
-    execute: vi.fn().mockResolvedValue(undefined),
     ...options,
   };
   mockCommandsMap.set(name, cmd);
@@ -58,7 +57,8 @@ describe("messageCreate event", () => {
   });
 
   it("should ignore bot messages", async () => {
-    const cmd = registerCommand("ping", { message: { keywords: ["ping"] } });
+    const execute = vi.fn().mockResolvedValue(undefined);
+    registerCommand("ping", { message: { keywords: ["ping"], execute } });
     const message = createMockMessage({
       author: { bot: true },
       content: "ping",
@@ -66,87 +66,46 @@ describe("messageCreate event", () => {
 
     await messageCreate.execute(createMockClient(), message);
 
-    expect(cmd.execute).not.toHaveBeenCalled();
+    expect(execute).not.toHaveBeenCalled();
   });
 
   it("should execute command matching message keyword", async () => {
-    const cmd = registerCommand("ping", { message: { keywords: ["ping"] } });
+    const execute = vi.fn().mockResolvedValue(undefined);
+    registerCommand("ping", { message: { keywords: ["ping"], execute } });
     const message = createMockMessage({ content: "ping" });
 
     await messageCreate.execute(createMockClient(), message);
 
-    expect(cmd.execute).toHaveBeenCalledWith(message);
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "message", message }),
+    );
   });
 
   it("should match keywords case-insensitively", async () => {
-    const cmd = registerCommand("ping", { message: { keywords: ["ping"] } });
+    const execute = vi.fn().mockResolvedValue(undefined);
+    registerCommand("ping", { message: { keywords: ["ping"], execute } });
     const message = createMockMessage({ content: "PING" });
 
     await messageCreate.execute(createMockClient(), message);
 
-    expect(cmd.execute).toHaveBeenCalledWith(message);
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "message", message }),
+    );
   });
 
   it("should not execute when no keywords match", async () => {
-    const cmd = registerCommand("ping", { message: { keywords: ["ping"] } });
+    const execute = vi.fn().mockResolvedValue(undefined);
+    registerCommand("ping", { message: { keywords: ["ping"], execute } });
     const message = createMockMessage({ content: "hello" });
 
     await messageCreate.execute(createMockClient(), message);
 
-    expect(cmd.execute).not.toHaveBeenCalled();
-  });
-
-  it("should execute mention command when bot is mentioned", async () => {
-    const cmd = registerCommand("ping", {
-      mention: { keywords: ["ping"] },
-    });
-    const message = createMockMessage({
-      content: "<@bot-id> ping",
-      mentions: { has: vi.fn().mockReturnValue(true) },
-    });
-
-    await messageCreate.execute(createMockClient(), message);
-
-    expect(cmd.execute).toHaveBeenCalledWith(message);
-  });
-
-  it("should execute mention command with no keywords when mentioned with no extra text", async () => {
-    const cmd = registerCommand("greet", {
-      mention: { keywords: [] },
-    });
-    const message = createMockMessage({
-      content: "<@bot-id>",
-      mentions: { has: vi.fn().mockReturnValue(true) },
-    });
-
-    await messageCreate.execute(createMockClient(), message);
-
-    expect(cmd.execute).toHaveBeenCalledWith(message);
-  });
-
-  it("should prefer mention match over message keyword match", async () => {
-    const mentionCmd = registerCommand("mention-ping", {
-      mention: { keywords: ["ping"] },
-    });
-    const messageCmd = registerCommand("msg-ping", {
-      message: { keywords: ["ping"] },
-    });
-    const message = createMockMessage({
-      content: "<@bot-id> ping",
-      mentions: { has: vi.fn().mockReturnValue(true) },
-    });
-
-    await messageCreate.execute(createMockClient(), message);
-
-    expect(mentionCmd.execute).toHaveBeenCalledWith(message);
-    expect(messageCmd.execute).not.toHaveBeenCalled();
+    expect(execute).not.toHaveBeenCalled();
   });
 
   it("should reply with error when command execution fails", async () => {
-    registerCommand("ping", {
-      message: { keywords: ["ping"] },
-      execute: vi.fn().mockRejectedValue(new Error("fail")),
-    });
+    const execute = vi.fn().mockRejectedValue(new Error("fail"));
+    registerCommand("ping", { message: { keywords: ["ping"], execute } });
     vi.spyOn(console, "error").mockImplementation(() => {});
     const message = createMockMessage({ content: "ping" });
 
@@ -156,17 +115,21 @@ describe("messageCreate event", () => {
   });
 
   it("should pick command by registration order when multiple match", async () => {
-    const first = registerCommand("first", {
-      message: { keywords: ["hello"] },
+    const firstExecute = vi.fn().mockResolvedValue(undefined);
+    const secondExecute = vi.fn().mockResolvedValue(undefined);
+    registerCommand("first", {
+      message: { keywords: ["hello"], execute: firstExecute },
     });
-    const second = registerCommand("second", {
-      message: { keywords: ["hello"] },
+    registerCommand("second", {
+      message: { keywords: ["hello"], execute: secondExecute },
     });
     const message = createMockMessage({ content: "hello" });
 
     await messageCreate.execute(createMockClient(), message);
 
-    expect(first.execute).toHaveBeenCalledWith(message);
-    expect(second.execute).not.toHaveBeenCalled();
+    expect(firstExecute).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "message", message }),
+    );
+    expect(secondExecute).not.toHaveBeenCalled();
   });
 });

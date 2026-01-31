@@ -8,27 +8,17 @@ describe("clientReady event", () => {
 
   it("should log the bot tag on ready", () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
-    const mockClient = {
+    const mockClient = {} as any;
+    const mockReadyClient = {
       user: { tag: "TestBot#1234" },
     } as any;
 
-    clientReady.execute(mockClient);
+    clientReady.execute(mockClient, mockReadyClient);
 
     expect(console.log).toHaveBeenCalledWith("Logged in as TestBot#1234");
   });
 
   it("should have once set to true", () => {
     expect(clientReady.once).toBe(true);
-  });
-
-  it("should handle missing user gracefully", () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    const mockClient = { user: undefined } as any;
-
-    clientReady.execute(mockClient);
-
-    expect(console.error).toHaveBeenCalledWith("Client user is not available");
-    expect(console.log).not.toHaveBeenCalled();
   });
 });

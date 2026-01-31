@@ -6,18 +6,24 @@ function createMockCommand(overrides: Partial<Command> = {}): Command {
   return {
     name: "test",
     description: "test command",
-    execute: vi.fn().mockResolvedValue(undefined),
+    slash: {
+      execute: vi.fn().mockResolvedValue(undefined),
+    },
     ...overrides,
-  };
+  } as Command;
 }
 
 function createMockInteraction(overrides: Record<string, unknown> = {}) {
   return {
     isChatInputCommand: () => true,
+    isUserContextMenuCommand: () => false,
+    isMessageContextMenuCommand: () => false,
     commandName: "test",
+    user: { id: "user-id", username: "testuser" },
     replied: false,
     deferred: false,
     reply: vi.fn().mockResolvedValue(undefined),
+    editReply: vi.fn().mockResolvedValue(undefined),
     followUp: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   } as any;
@@ -36,20 +42,24 @@ describe("interactionCreate event", () => {
 
     await handler.execute({} as any, interaction);
 
-    expect(cmd.execute).toHaveBeenCalledWith(interaction);
+    expect(cmd.slash!.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "slash", interaction }),
+    );
   });
 
-  it("should ignore non-chat-input interactions", async () => {
+  it("should ignore non-command interactions", async () => {
     const cmd = createMockCommand();
     const commands = new Map([["test", cmd]]);
     const handler = createInteractionHandler(commands);
     const interaction = createMockInteraction({
       isChatInputCommand: () => false,
+      isUserContextMenuCommand: () => false,
+      isMessageContextMenuCommand: () => false,
     });
 
     await handler.execute({} as any, interaction);
 
-    expect(cmd.execute).not.toHaveBeenCalled();
+    expect(cmd.slash!.execute).not.toHaveBeenCalled();
   });
 
   it("should log error for unknown command", async () => {
@@ -66,7 +76,9 @@ describe("interactionCreate event", () => {
   it("should reply with error message when command throws", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const cmd = createMockCommand({
-      execute: vi.fn().mockRejectedValue(new Error("fail")),
+      slash: {
+        execute: vi.fn().mockRejectedValue(new Error("fail")),
+      },
     });
     const commands = new Map([["test", cmd]]);
     const handler = createInteractionHandler(commands);
@@ -83,7 +95,9 @@ describe("interactionCreate event", () => {
   it("should use followUp when already replied", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const cmd = createMockCommand({
-      execute: vi.fn().mockRejectedValue(new Error("fail")),
+      slash: {
+        execute: vi.fn().mockRejectedValue(new Error("fail")),
+      },
     });
     const commands = new Map([["test", cmd]]);
     const handler = createInteractionHandler(commands);
