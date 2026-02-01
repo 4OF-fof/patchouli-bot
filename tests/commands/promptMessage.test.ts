@@ -8,12 +8,12 @@ vi.mock("@/env", () => ({
   },
 }));
 
-vi.mock("@/connector", () => ({
+vi.mock("@/connector/ai", () => ({
   generateResponse: vi.fn(),
 }));
 
 import { executePromptMessage } from "@/commands/promptMessage/executePromptMessage";
-import { generateResponse } from "@/connector";
+import { generateResponse } from "@/connector/ai";
 
 const mockGenerateResponse = vi.mocked(generateResponse);
 

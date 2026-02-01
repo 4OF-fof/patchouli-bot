@@ -1,5 +1,5 @@
 import { env } from "@/env";
-import { generateResponse } from "@/connector";
+import { generateResponse } from "@/connector/ai";
 import type { MessageContext } from "@/types";
 
 const DISCORD_MAX_LENGTH = 2000;

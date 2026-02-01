@@ -2,18 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockGenerateResponse = vi.fn();
 
-vi.mock("@/connector/client", () => ({
+vi.mock("@/connector/ai/client", () => ({
   getClient: () => ({
     generateResponse: mockGenerateResponse,
   }),
 }));
 
-vi.mock("@/connector/prompts/loader", () => ({
+vi.mock("@/connector/ai/prompts/loader", () => ({
   loadPrompt: vi.fn().mockResolvedValue("default system prompt"),
 }));
 
-import { generateResponse } from "@/connector";
-import { loadPrompt } from "@/connector/prompts/loader";
+import { generateResponse } from "@/connector/ai";
+import { loadPrompt } from "@/connector/ai/prompts/loader";
 
 const lengthPrefix = "あなたの応答は必ず200文字以内に収めてください。\n\n";
 
