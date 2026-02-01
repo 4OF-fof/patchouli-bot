@@ -1,6 +1,16 @@
 import type { Client, Message, MessagePayload, MessageReplyOptions } from "discord.js";
 import type { Event, Command, CommandContext } from "../types";
-import { commands, commandOrder } from "../commands";
+import { commandOrder, keywordMap, regexCommands } from "../commands";
+
+const segmenter = new Intl.Segmenter("ja", { granularity: "word" });
+
+function segmentWords(text: string): Set<string> {
+	const words = new Set<string>();
+	for (const { segment, isWordLike } of segmenter.segment(text)) {
+		if (isWordLike) words.add(segment.toLowerCase());
+	}
+	return words;
+}
 
 const sortByOrder = (a: Command, b: Command) =>
 	(commandOrder.get(a.name) ?? Number.MAX_SAFE_INTEGER) -
@@ -17,20 +27,24 @@ export const messageCreate: Event<"messageCreate"> = {
 
 		const baseContext = { message, executor: message.author, reply } as const;
 
-		const contentLower = message.content.toLowerCase();
+		const words = segmentWords(message.content);
 
-		const messageMatches = Array.from(commands.values()).filter((cmd: Command) =>
-			Boolean(
-				cmd.message?.keywords.some((kw) =>
-					kw instanceof RegExp
-						? kw.test(message.content)
-						: contentLower.includes(kw.toLowerCase()),
-				),
-			),
-		);
+		// 文字列キーワード: Map で O(1) ルックアップ
+		const matchSet = new Set<Command>();
+		for (const word of words) {
+			const cmds = keywordMap.get(word);
+			if (cmds) for (const cmd of cmds) matchSet.add(cmd);
+		}
 
-		if (messageMatches.length > 0) {
-			messageMatches.sort(sortByOrder);
+		// 正規表現キーワード: リニアスキャン
+		for (const cmd of regexCommands) {
+			if (cmd.message!.keywords.some((kw) => kw instanceof RegExp && kw.test(message.content))) {
+				matchSet.add(cmd);
+			}
+		}
+
+		if (matchSet.size > 0) {
+			const messageMatches = [...matchSet].sort(sortByOrder);
 			const command = messageMatches[0];
 			try {
 				await command.message!.execute({ type: "message", ...baseContext });

@@ -1,18 +1,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const mockCommandsMap = new Map<string, any>();
 const mockCommandOrderMap = new Map<string, number>();
+const mockKeywordMap = new Map<string, any[]>();
+const mockRegexCommands: any[] = [];
 
-// getter を使い、テストごとに mockCommandsMap / mockCommandOrderMap の中身を差し替え可能にする
 vi.mock("../../src/commands/index.js", () => {
   return {
-    get commands() {
-      return {
-        values: () => mockCommandsMap.values(),
-      };
-    },
     get commandOrder() {
       return mockCommandOrderMap;
+    },
+    get keywordMap() {
+      return mockKeywordMap;
+    },
+    get regexCommands() {
+      return mockRegexCommands;
     },
   };
 });
@@ -41,15 +42,36 @@ function registerCommand(name: string, options: Record<string, unknown> = {}) {
     description: `${name} command`,
     ...options,
   };
-  mockCommandsMap.set(name, cmd);
-  mockCommandOrderMap.set(name, mockCommandsMap.size - 1);
+  const order = mockCommandOrderMap.size;
+  mockCommandOrderMap.set(name, order);
+
+  const msg = cmd.message as { keywords: (string | RegExp)[]; execute: any } | undefined;
+  if (msg) {
+    let hasRegex = false;
+    for (const kw of msg.keywords) {
+      if (kw instanceof RegExp) {
+        hasRegex = true;
+      } else {
+        const key = kw.toLowerCase();
+        const list = mockKeywordMap.get(key);
+        if (list) {
+          list.push(cmd);
+        } else {
+          mockKeywordMap.set(key, [cmd]);
+        }
+      }
+    }
+    if (hasRegex) mockRegexCommands.push(cmd);
+  }
+
   return cmd;
 }
 
 describe("messageCreate event", () => {
   beforeEach(() => {
-    mockCommandsMap.clear();
     mockCommandOrderMap.clear();
+    mockKeywordMap.clear();
+    mockRegexCommands.length = 0;
   });
 
   afterEach(() => {
@@ -112,6 +134,42 @@ describe("messageCreate event", () => {
     await messageCreate.execute(createMockClient(), message);
 
     expect(message.reply).toHaveBeenCalledWith("コマンドの実行中にエラーが発生しました。");
+  });
+
+  it("should not match keyword as substring of another word", async () => {
+    const execute = vi.fn().mockResolvedValue(undefined);
+    registerCommand("test", { message: { keywords: ["ワード"], execute } });
+    const message = createMockMessage({ content: "キーワードマッチング" });
+
+    await messageCreate.execute(createMockClient(), message);
+
+    expect(execute).not.toHaveBeenCalled();
+  });
+
+  it("should match keyword as independent token", async () => {
+    const execute = vi.fn().mockResolvedValue(undefined);
+    registerCommand("test", { message: { keywords: ["メッセージ"], execute } });
+    const message = createMockMessage({ content: "特定のメッセージに反応したい" });
+
+    await messageCreate.execute(createMockClient(), message);
+
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "message", message }),
+    );
+  });
+
+  it("should match regex keywords", async () => {
+    const execute = vi.fn().mockResolvedValue(undefined);
+    registerCommand("mention", {
+      message: { keywords: [/^<@!?\d+>/], execute },
+    });
+    const message = createMockMessage({ content: "<@123456> hello" });
+
+    await messageCreate.execute(createMockClient(), message);
+
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "message", message }),
+    );
   });
 
   it("should pick command by registration order when multiple match", async () => {
