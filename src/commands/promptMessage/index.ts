@@ -1,5 +1,5 @@
-import { env } from "../../env";
-import type { Command } from "../../types";
+import { env } from "@/env";
+import type { Command } from "@/types";
 import { executePromptMessage } from "./executePromptMessage";
 
 export const promptMessage: Command = {

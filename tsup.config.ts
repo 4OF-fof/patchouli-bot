@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import { defineConfig } from "tsup";
 
 export default defineConfig({
@@ -6,4 +7,9 @@ export default defineConfig({
   target: "esnext",
   clean: true,
   sourcemap: true,
+  esbuildOptions(options) {
+    options.alias = {
+      "@": resolve(__dirname, "src"),
+    };
+  },
 });

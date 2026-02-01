@@ -1,5 +1,5 @@
 import { Collection } from "discord.js";
-import type { Command } from "../types";
+import type { Command } from "@/types";
 import { promptMessage } from "./promptMessage";
 
 export const commandList: Command[] = [promptMessage];

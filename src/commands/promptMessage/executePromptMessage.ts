@@ -1,6 +1,6 @@
-import { env } from "../../env";
-import { generateResponse } from "../../connector";
-import type { MessageContext } from "../../types";
+import { env } from "@/env";
+import { generateResponse } from "@/connector";
+import type { MessageContext } from "@/types";
 
 const DISCORD_MAX_LENGTH = 2000;
 const mentionRegex = new RegExp(`^<@!?${env.discordClientId}>\\s*`);

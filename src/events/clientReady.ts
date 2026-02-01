@@ -1,5 +1,5 @@
 import type { Client } from "discord.js";
-import type { Event } from "../types";
+import type { Event } from "@/types";
 
 export const clientReady: Event<"clientReady"> = {
 	name: "clientReady",

@@ -1,6 +1,6 @@
 import type { Client, Message, MessagePayload, MessageReplyOptions } from "discord.js";
-import type { Event, Command, CommandContext } from "../types";
-import { commandOrder, keywordMap, regexCommands } from "../commands";
+import type { Event, Command, CommandContext } from "@/types";
+import { commandOrder, keywordMap, regexCommands } from "@/commands";
 
 const segmenter = new Intl.Segmenter("ja", { granularity: "word" });
 

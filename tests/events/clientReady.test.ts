@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { clientReady } from "../../src/events/clientReady.js";
+import { clientReady } from "@/events/clientReady";
 
 describe("clientReady event", () => {
   afterEach(() => {

@@ -5,7 +5,7 @@ import type {
 	MessagePayload,
 	RepliableInteraction,
 } from "discord.js";
-import type { Command, CommandContext, Event } from "../types";
+import type { Command, CommandContext, Event } from "@/types";
 
 async function handleError(interaction: RepliableInteraction, commandName: string, error: unknown) {
 	console.error(`Error executing command ${commandName}:`, error);

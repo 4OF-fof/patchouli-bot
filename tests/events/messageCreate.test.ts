@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { Command } from "@/types";
 
 const mockCommandOrderMap = new Map<string, number>();
 const mockKeywordMap = new Map<string, any[]>();
 const mockRegexCommands: any[] = [];
 
-vi.mock("../../src/commands/index.js", () => {
+vi.mock("@/commands", () => {
   return {
     get commandOrder() {
       return mockCommandOrderMap;
@@ -18,7 +19,7 @@ vi.mock("../../src/commands/index.js", () => {
   };
 });
 
-import { messageCreate } from "../../src/events/messageCreate.js";
+import { messageCreate } from "@/events/messageCreate";
 
 function createMockMessage(overrides: Record<string, unknown> = {}) {
   return {
@@ -36,8 +37,8 @@ function createMockClient() {
   return { user: { id: "bot-id" } } as any;
 }
 
-function registerCommand(name: string, options: Record<string, unknown> = {}) {
-  const cmd = {
+function registerCommand(name: string, options: Partial<Command> = {}) {
+  const cmd: Command = {
     name,
     description: `${name} command`,
     ...options,
@@ -45,7 +46,7 @@ function registerCommand(name: string, options: Record<string, unknown> = {}) {
   const order = mockCommandOrderMap.size;
   mockCommandOrderMap.set(name, order);
 
-  const msg = cmd.message as { keywords: (string | RegExp)[]; execute: any } | undefined;
+  const msg = cmd.message;
   if (msg) {
     let hasRegex = false;
     for (const kw of msg.keywords) {

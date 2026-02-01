@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { createInteractionHandler } from "../../src/events/interactionCreate.js";
-import type { Command } from "../../src/types/index.js";
+import { createInteractionHandler } from "@/events/interactionCreate";
+import type { Command } from "@/types";
 
 function createMockCommand(overrides: Partial<Command> = {}): Command {
   return {

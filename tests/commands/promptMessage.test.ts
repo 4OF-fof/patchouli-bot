@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("../../src/env.js", () => ({
+vi.mock("@/env", () => ({
   env: {
     discordToken: "test",
     discordClientId: "test-bot-id",
@@ -8,12 +8,12 @@ vi.mock("../../src/env.js", () => ({
   },
 }));
 
-vi.mock("../../src/connector/index.js", () => ({
+vi.mock("@/connector", () => ({
   generateResponse: vi.fn(),
 }));
 
-import { executePromptMessage } from "../../src/commands/promptMessage/executePromptMessage.js";
-import { generateResponse } from "../../src/connector/index.js";
+import { executePromptMessage } from "@/commands/promptMessage/executePromptMessage";
+import { generateResponse } from "@/connector";
 
 const mockGenerateResponse = vi.mocked(generateResponse);
 

@@ -1,4 +1,4 @@
-import { env } from "./env";
+import { env } from "@/env";
 import {
 	ApplicationCommandType,
 	ContextMenuCommandBuilder,
@@ -6,7 +6,7 @@ import {
 	Routes,
 	SlashCommandBuilder,
 } from "discord.js";
-import { commands } from "./commands";
+import { commands } from "@/commands";
 
 const isRelease = process.argv.includes("--release");
 
