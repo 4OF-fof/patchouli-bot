@@ -13,4 +13,5 @@ export const env = {
 	discordClientId: requireEnv("DISCORD_CLIENT_ID"),
 	ownerUserId: process.env.OWNER_USERID,
 	guildId: process.env.GUILD_ID,
+	grokApiKey: requireEnv("GROK_API_KEY"),
 };

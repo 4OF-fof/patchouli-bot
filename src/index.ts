@@ -2,9 +2,9 @@ import { env } from "./env";
 import { Client, type ClientEvents, GatewayIntentBits } from "discord.js";
 import { commands } from "./commands";
 import type { Event } from "./types";
-import { clientReady } from "./events/clientReady.js";
-import { messageCreate } from "./events/messageCreate.js";
-import { createInteractionHandler } from "./events/interactionCreate.js";
+import { clientReady } from "./events/clientReady";
+import { messageCreate } from "./events/messageCreate";
+import { createInteractionHandler } from "./events/interactionCreate";
 
 const client = new Client({
 	intents: [
