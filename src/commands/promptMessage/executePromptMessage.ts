@@ -10,6 +10,11 @@ export const executePromptMessage = async (ctx: MessageContext) => {
 		await ctx.reply({ content: "なにか用ですか？" });
 		return;
 	}
-	const reply = await generateResponse(content);
-	await ctx.reply({ content: reply || "応答を生成できませんでした。" });
+	try {
+		const reply = await generateResponse(content);
+		await ctx.reply({ content: reply || "応答を生成できませんでした。" });
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "応答の生成中にエラーが発生しました。";
+		await ctx.reply({ content: message });
+	}
 };

@@ -15,6 +15,8 @@ vi.mock("../../src/connector/prompts/loader.js", () => ({
 import { generateResponse } from "../../src/connector/index.js";
 import { loadPrompt } from "../../src/connector/prompts/loader.js";
 
+const lengthPrefix = "あなたの応答は必ず2000文字以内に収めてください。\n\n";
+
 describe("generateResponse", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -27,7 +29,7 @@ describe("generateResponse", () => {
     expect(result).toBe("AI response");
     expect(mockGenerateResponse).toHaveBeenCalledWith(
       "hello",
-      "default system prompt",
+      `${lengthPrefix}default system prompt`,
     );
   });
 
@@ -43,7 +45,7 @@ describe("generateResponse", () => {
     expect(loadPrompt).not.toHaveBeenCalled();
     expect(mockGenerateResponse).toHaveBeenCalledWith(
       "hello",
-      "custom prompt",
+      `${lengthPrefix}custom prompt`,
     );
   });
 
@@ -59,5 +61,27 @@ describe("generateResponse", () => {
     const result = await generateResponse("hello");
 
     expect(result).toBe("");
+  });
+
+  it("should regenerate when response exceeds maxResponseLength", async () => {
+    const longResponse = "a".repeat(2001);
+    const shortResponse = "short reply";
+    mockGenerateResponse
+      .mockResolvedValueOnce(longResponse)
+      .mockResolvedValueOnce(shortResponse);
+
+    const result = await generateResponse("hello");
+
+    expect(result).toBe(shortResponse);
+    expect(mockGenerateResponse).toHaveBeenCalledTimes(2);
+  });
+
+  it("should throw error after max regenerate attempts exceeded", async () => {
+    const longResponse = "a".repeat(2001);
+    mockGenerateResponse.mockResolvedValue(longResponse);
+
+    await expect(generateResponse("hello")).rejects.toThrow(
+      "応答が文字数制限を超過しました。再度お試しください。",
+    );
   });
 });
