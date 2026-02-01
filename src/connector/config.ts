@@ -4,5 +4,4 @@ export const modelConfig = {
 	maxRetries: 3,
 	retryBaseDelayMs: 1000,
 	maxResponseLength: 200,
-	maxRegenerateAttempts: 2,
 } as const;

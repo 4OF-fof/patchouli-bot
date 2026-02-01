@@ -57,4 +57,23 @@ describe("executePromptMessage", () => {
 
     expect(ctx.reply).toHaveBeenCalledWith({ content: "応答を生成できませんでした。" });
   });
+
+  it("should reply with error when response exceeds Discord limit", async () => {
+    mockGenerateResponse.mockResolvedValue("a".repeat(2001));
+    const ctx = createMockContext("hello");
+
+    await executePromptMessage(ctx);
+
+    expect(ctx.reply).toHaveBeenCalledWith({ content: "応答が長すぎて送信できませんでした。" });
+  });
+
+  it("should send response at exactly 2000 characters", async () => {
+    const exactResponse = "a".repeat(2000);
+    mockGenerateResponse.mockResolvedValue(exactResponse);
+    const ctx = createMockContext("hello");
+
+    await executePromptMessage(ctx);
+
+    expect(ctx.reply).toHaveBeenCalledWith({ content: exactResponse });
+  });
 });
